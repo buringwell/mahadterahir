@@ -42,26 +42,24 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($santris as $santri)
-                    <tr>
-                        <td>{{ $santri->user->name }}</td>
-                        <td>
-                            <input type="radio" name="status[{{ $santri->id }}]" value="hadir" {{ $absensi->status === 'hadir' ? 'checked' : '' }} required>
-                        </td>
-                        <td>
-                            <input type="radio" name="status[{{ $santri->id }}]" value="izin" {{ $absensi->status === 'izin' ? 'checked' : '' }}>
-                        </td>
-                        <td>
-                            <input type="radio" name="status[{{ $santri->id }}]" value="sakit" {{ $absensi->status === 'sakit' ? 'checked' : '' }}>
-                        </td>
-                        <td>
-                            <input type="radio" name="status[{{ $santri->id }}]" value="alfa" {{ $absensi->status === 'alfa' ? 'checked' : '' }}>
-                        </td>
-                        <td>
-                            <input type="text" name="keterangan[{{ $santri->id }}]" class="form-control" value="{{ old("keterangan.$santri->id", $absensi->keterangan) }}" placeholder="Masukkan keterangan (opsional)">
-                        </td>
-                    </tr>
-                @endforeach
+                <tr>
+                    <td>{{ $absensi->santri->user->name }}</td>
+                    <td>
+                        <input type="radio" name="status" value="hadir" {{ $absensi->status === 'hadir' ? 'checked' : '' }} required>
+                    </td>
+                    <td>
+                        <input type="radio" name="status" value="izin" {{ $absensi->status === 'izin' ? 'checked' : '' }}>
+                    </td>
+                    <td>
+                        <input type="radio" name="status" value="sakit" {{ $absensi->status === 'sakit' ? 'checked' : '' }}>
+                    </td>
+                    <td>
+                        <input type="radio" name="status" value="alfa" {{ $absensi->status === 'alfa' ? 'checked' : '' }}>
+                    </td>
+                    <td>
+                        <input type="text" name="keterangan" class="form-control" value="{{ old('keterangan', $absensi->keterangan) }}" placeholder="Masukkan keterangan (opsional)">
+                    </td>
+                </tr>
             </tbody>
         </table>
 

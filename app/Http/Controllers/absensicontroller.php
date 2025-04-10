@@ -109,7 +109,7 @@ class absensicontroller extends Controller
   {
       $absensi = presensi::findOrFail($id);
       $santris = Santri::all();
-      return view('absensi.edit', compact('absensi', 'santris'));
+      return view('absensi.update', compact('absensi', 'santris'));
   }
 
   // 📌 Update absensi
@@ -118,7 +118,7 @@ class absensicontroller extends Controller
       $request->validate([
           'santri_id' => 'required|exists:santris,id',
           'tanggal' => 'required|date',
-          'status_kehadiran' => 'required|in:hadir,izin,sakit,alfa',
+          'status' => 'required|in:hadir,izin,sakit,alfa',
           'keterangan' => 'nullable|string',
       ]);
 

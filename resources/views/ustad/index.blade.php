@@ -1,6 +1,6 @@
 
    <h2>Daftar Ustad</h2>
-    <a href="{{ route('ustads.create') }}">Tambah Ustad</a>
+    <a href="{{ route('ustadz.create') }}">Tambah Ustad</a>
     <table>
         <tr>
             <th>Nama</th>
