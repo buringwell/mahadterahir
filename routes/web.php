@@ -12,6 +12,8 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PetgsPembayaranControler;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -140,3 +142,8 @@ Route::delete('/kelas/{id}', [kelasController::class, 'destroy'])->name('kelas.d
 
 
 
+Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
