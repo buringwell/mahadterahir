@@ -1,22 +1,46 @@
 <div class="container">
     <h2>Daftar Absensi Santri</h2>
-    <a href="{{ route('absensi.create') }}" class="btn btn-primary mb-3">Tambah Absensi</a>
-
-    <select name="kelas_id" id="kelas_id" class="form-control">
-        <option value="">Pilih Kelas</option>
-        @foreach($kelasOptions as $id => $nama)
-            <option value="{{ $id }}" {{ request('kelas_id') == $id ? 'selected' : '' }}>{{ $nama }}</option>
-        @endforeach
-    </select>
+    <form method="GET" action="{{ route('absensi.index') }}" class="mb-3">
+        <div class="row">
+            <div class="col-md-3">
+                <select name="kelas_sekolah" class="form-control">
+                    <option value="">Pilih Kelas</option>
+                    @foreach($kelasOptions as $id => $nama)
+                        <option value="{{ $id }}" {{ request('kelas_sekolah') == $id ? 'selected' : '' }}>{{ $nama }}</option>
+                    @endforeach
+                </select>
+            </div>
     
-    <select name="kamar_id" id="kamar_id" class="form-control">
-        <option value="">Pilih Kamar</option>
-        @foreach($kamarOptions as $id => $nama)
-            <option value="{{ $id }}" {{ request('kamar_id') == $id ? 'selected' : '' }}>{{ $nama }}</option>
-        @endforeach
-    </select>
+            <div class="col-md-3">
+                <select name="kamar" class="form-control">
+                    <option value="">Pilih Kamar</option>
+                    @foreach($kamarOptions as $id => $nama)
+                        <option value="{{ $id }}" {{ request('kamar') == $id ? 'selected' : '' }}>{{ $nama }}</option>
+                    @endforeach
+                </select>
+            </div>
     
+            <div class="col-md-3">
+                <select name="tingkat" class="form-control">
+                    <option value="">Pilih Tingkat</option>
+                    @foreach($tingkatOptions as $tingkat)
+                        <option value="{{ $tingkat }}" {{ request('tingkat') == $tingkat ? 'selected' : '' }}>
+                            Kelas {{ $tingkat }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+    
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-success">Filter</button>
+            </div>
+        </div>
+    </form>
 
+    <a href="{{ route('absensi.create', request()->only(['tingkat', 'kelas_sekolah', 'kamar'])) }}" class="btn btn-primary mb-3">
+        Tambah Absensi
+    </a>
+    
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif

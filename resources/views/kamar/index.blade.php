@@ -16,7 +16,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($kamarss as $k)
+            @foreach($kamars as $k)
                 <tr>
                     <td>{{ $k->nama }}</td>
                     <td>
