@@ -147,3 +147,6 @@ Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkE
 
 Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
+
+
+Route::get('/rekap_bulanan', [absensicontroller::class, 'rekap'])->name('absensi.rekap');
