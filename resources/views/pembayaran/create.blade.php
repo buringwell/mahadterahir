@@ -14,7 +14,18 @@
                 @endforeach
             </select>
         </div>
-
+        <div class="form-group">
+            <label for="bulan">Bulan Dibayar</label>
+            <select name="bulan" id="bulan" class="form-control" required>
+                <option value="">-- Pilih Bulan --</option>
+                @foreach([
+                    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                ] as $bulan)
+                    <option value="{{ $bulan }}">{{ $bulan }}</option>
+                @endforeach
+            </select>
+        </div>
         <div class="mb-3">
             <label class="form-label">Jumlah</label>
             <input type="number" name="jumlah" class="form-control" min="0" max="99999999.99" step="0.01" required>

@@ -31,8 +31,10 @@ class PembayaranController extends Controller
             'tanggal' => 'required|date',
             'metode_pembayaran' => 'required|in:cash,transfer,qris,beasiswa',
             'file_transaksi' => 'nullable|file|mimes:jpg,png,pdf|max:2048',
+            'bulan' => 'required|string',
             'keterangan' => 'nullable|string'
         ]);
+        
     
         // Generate kode transaksi unik
         $validatedData['kode_transaksi'] = 'TRX-' . strtoupper(uniqid());
@@ -46,6 +48,14 @@ class PembayaranController extends Controller
             pembayaran_detal::create([
                 'pembayaran_id' => $pembayaran->id,
                 'file_transaksi' => $path,
+                'bulan_dibayar' => $request->input('bulan_dibayar'),
+                'keterangan' => $request->input('keterangan'),
+            ]);
+        } else {
+            // Tetap simpan detail meskipun tanpa file
+            pembayaran_detal::create([
+                'pembayaran_id' => $pembayaran->id,
+                'bulan_dibayar' => $request->input('bulan_dibayar'),
                 'keterangan' => $request->input('keterangan'),
             ]);
         }

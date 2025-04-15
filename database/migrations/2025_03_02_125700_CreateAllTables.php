@@ -69,6 +69,7 @@ return new class extends Migration {
             $table->foreignId('santri_id')->constrained('santris')->onDelete('cascade');
             $table->decimal('jumlah', 12, 2);
             $table->date('tanggal');
+            $table->string('bulan')->nullable();
             $table->string('kode_transaksi')->unique();
             $table->enum('status_pembayaran', ['pending', 'lunas', 'gagal'])->default('pending');
             $table->enum('metode_pembayaran', ['cash', 'transfer', 'qris', 'beasiswa'])->default('cash');

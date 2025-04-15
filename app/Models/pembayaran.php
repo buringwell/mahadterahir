@@ -17,6 +17,7 @@ class pembayaran extends Model
         'santri_id',
         'jumlah',
         'tanggal',
+        'bulan',
         'kode_transaksi',
         'status_pembayaran',
     ];

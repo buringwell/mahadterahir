@@ -92,6 +92,7 @@ Route::middleware(['auth', 'role:petugas|admin|santri'])->group(function () {
 
 // Routes untuk Absensi (Hanya Admin dan Ustadz yang bisa mengakses)
 Route::middleware(['auth', 'role:admin|ustadz'])->group(function () {
+
     Route::get('/absensi', [AbsensiController::class, 'index'])->name('absensi.index');
     Route::get('/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');
     Route::post('/absensi/store', [AbsensiController::class, 'store'])->name('absensi.store');
