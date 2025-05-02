@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\petugaspembayaran;
 use App\Models\User;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 use Illuminate\Http\Request;
 
 class PetgsPembayaranControler extends Controller
@@ -99,5 +102,41 @@ class PetgsPembayaranControler extends Controller
         return redirect()->route('petugas.index')->with('success', 'Petugas berhasil dihapus!');
     }
     
+
+
+public function exportPetugasExcel()
+{
+    $petugas = PetugasPembayaran::with('user')->get();
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+    // Header
+    $sheet->setCellValue('A1', 'No');
+    $sheet->setCellValue('B1', 'Nama');
+    $sheet->setCellValue('C1', 'Email');
+    $sheet->setCellValue('D1', 'Alamat');
+    $sheet->setCellValue('E1', 'No Hp');
+
+    // Data
+    $row = 2;
+    $no = 1;
+    foreach ($petugas as $data) {
+        $sheet->setCellValue('A' . $row, $no++);
+        $sheet->setCellValue('B' . $row, $data->user->name ?? '-');
+        $sheet->setCellValue('C' . $row, $data->user->email ?? '-');
+        $sheet->setCellValue('D' . $row, $data->alamat ?? '-'); // dari PetugasPembayaran
+        $sheet->setCellValue('E' . $row, $data->no_hp ?? '-');   // dari PetugasPembayaran
+        $row++;
+    }
+    
+
+    $writer = new Xlsx($spreadsheet);
+    $filename = 'data_petugas.xlsx';
+
+    return response()->streamDownload(function () use ($writer) {
+        $writer->save('php://output');
+    }, $filename);
+    }
+
     
 }

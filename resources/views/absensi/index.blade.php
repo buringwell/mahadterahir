@@ -37,6 +37,17 @@
         </div>
     </form>
 
+    <form action="{{ route('absensi.export') }}" method="GET">
+        <select name="kelas" class="form-select">
+            <option value="">-- Pilih Kelas --</option>
+            @foreach($kelasOptions as $id => $nama)
+                <option value="{{ $id }}" {{ request('kelas') == $id ? 'selected' : '' }}>{{ $nama }}</option>
+            @endforeach
+        </select>
+        <button type="submit" class="btn btn-success">Export Excel</button>
+    </form>
+    
+
     <a href="{{ route('absensi.create', request()->only(['tingkat', 'kelas_sekolah', 'kamar'])) }}" class="btn btn-primary mb-3">
         Tambah Absensi
     </a>

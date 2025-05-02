@@ -9,6 +9,10 @@ use App\Models\kelas;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+
 
 class absensicontroller extends Controller
 {
@@ -161,78 +165,125 @@ class absensicontroller extends Controller
     }
 
     public function rekap(Request $request)
+    {
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun', now()->year);
+        $semester = $request->input('semester');
+        $kelasId = $request->input('kelas_id');
+        $kamarId = $request->input('kamar_id');
+    
+        $query = Presensi::with('santri.user');
+    
+        // Filter Semester (jika ada)
+        if ($semester) {
+            $startMonth = $semester == 1 ? 1 : 7;
+            $endMonth = $semester == 1 ? 6 : 12;
+    
+            $query->whereYear('tanggal', $tahun)
+                  ->whereMonth('tanggal', '>=', $startMonth)
+                  ->whereMonth('tanggal', '<=', $endMonth);
+        } elseif ($bulan) {
+            // Filter Bulan (jika semester tidak diisi)
+            $query->whereYear('tanggal', $tahun)
+                  ->whereMonth('tanggal', $bulan);
+        }
+    
+        // Filter Kelas
+        if ($kelasId) {
+            $query->whereHas('santri.kelas', function ($q) use ($kelasId) {
+                $q->where('id', $kelasId);
+            });
+        }
+    
+        // Filter Kamar
+        if ($kamarId) {
+            $query->whereHas('santri.kamar', function ($q) use ($kamarId) {
+                $q->where('id', $kamarId);
+            });
+        }
+    
+        // Ambil data presensi
+        $presensis = $query->get();
+    
+        // Rekap data berdasarkan santri
+        $rekap = $presensis->groupBy('santri_id')->map(function ($data) {
+            return [
+                'hadir' => $data->where('status', 'hadir')->count(),
+                'izin' => $data->where('status', 'izin')->count(),
+                'sakit' => $data->where('status', 'sakit')->count(),
+                'alfa' => $data->where('status', 'alfa')->count(),
+            ];
+        });
+    
+        // Ambil info santri
+        $santriIds = $rekap->keys();
+        $santris = Santri::whereIn('id', $santriIds)->with('user')->get()->keyBy('id');
+    
+        // Data untuk select option
+        $kelasOptions = Kelas::pluck('nama', 'id');
+        $kamarOptions = Kamar::pluck('nama', 'id');
+    
+        return view('absensi.rekap_bulanan', compact(
+            'rekap', 'santris', 'kelasOptions', 'kamarOptions', 'bulan', 'tahun', 'semester'
+        ));
+    }
+    
+
+
+public function export(Request $request)
 {
-    $bulan = $request->input('bulan', now()->month);
-    $tahun = $request->input('tahun', now()->year);
-    $kelasId = $request->input('kelas_id');
-    $kamarId = $request->input('kamar_id');
+    $kelasId = $request->kelas; // id kelas
 
-    $query = Presensi::with('santri.user');
+    $absensis = Presensi::with(['santri.user', 'santri.kelas', 'santri.kamar'])
+        ->when($kelasId, function ($query, $kelasId) {
+            $query->whereHas('santri.kelas', function ($q) use ($kelasId) {
+                $q->where('id', $kelasId);
+            });
+        })
+        ->get();
 
-    $semester = $request->input('semester');
-    $bulan = $request->input('bulan');
-    $tahun = $request->input('tahun', now()->year);
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
 
-    $query = Presensi::with('santri.user');
+    // Header
+    $sheet->setCellValue('A1', 'No');
+    $sheet->setCellValue('B1', 'NIS');
+    $sheet->setCellValue('C1', 'Nama ');
+    $sheet->setCellValue('D1', 'Kelas');
+    $sheet->setCellValue('E1', 'Tingkat');
+    $sheet->setCellValue('F1', 'Kamar');
+    $sheet->setCellValue('G1', 'Tanggal');
+    $sheet->setCellValue('H1', 'Status');
 
-    if ($semester) {
-        // Semester 1: Januari - Juni | Semester 2: Juli - Desember
-        $startMonth = $semester == 1 ? 1 : 7;
-        $endMonth = $semester == 1 ? 6 : 12;
-
-        $query->whereMonth('tanggal', '>=', $startMonth)
-              ->whereMonth('tanggal', '<=', $endMonth)
-              ->whereYear('tanggal', $tahun);
-    }
-
-    if ($bulan) {
-        $query->whereMonth('tanggal', $bulan)
-              ->whereYear('tanggal', $tahun);
-    }
-
-    // Tambahkan filter kelas, kamar, dsb sesuai kebutuhanmu
-
-    $rekap = $query->get();
-
-
-    // Filter bulan dan tahun
-    $query->whereMonth('tanggal', $bulan)
-          ->whereYear('tanggal', $tahun);
-
-    // Filter kelas
-    if ($kelasId) {
-        $query->whereHas('santri.kelas', function ($q) use ($kelasId) {
-            $q->where('id', $kelasId);
-        });
-    }
-
-    // Filter kamar
-    if ($kamarId) {
-        $query->whereHas('santri.kamar', function ($q) use ($kamarId) {
-            $q->where('id', $kamarId);
-        });
-    }
-
-    $presensis = $query->get();
-
-    // Rekap berdasarkan santri
-    $rekap = $presensis->groupBy('santri_id')->map(function ($data) {
-        return [
-            'hadir' => $data->where('status', 'hadir')->count(),
-            'izin' => $data->where('status', 'izin')->count(),
-            'sakit' => $data->where('status', 'sakit')->count(),
-            'alfa' => $data->where('status', 'alfa')->count(),
+    // Data
+    $row = 2;
+    $no = 1;
+    foreach ($absensis as $data) {
+        $sheet->setCellValue('A' . $row, $no++);
+    $sheet->setCellValue('B' . $row, $data->santri->nis);
+    $sheet->setCellValue('C' . $row, $data->santri->user->name ?? '-');
+    $sheet->setCellValue('D' . $row, $data->santri->kelas->nama ?? '-');
+    $sheet->setCellValue('E' . $row, $data->santri->kelas->tingkat ?? '-');
+    $sheet->setCellValue('F' . $row, $data->santri->kamar->nama ?? '-');
+    $sheet->setCellValue('G' . $row, $data->tanggal);
+        $statusMap = [
+            'hadir' => 'Hadir',
+            'izin' => 'Izin (Dengan Surat)',
+            'sakit' => 'Sakit (Dokter)',
+            'alfa' => 'Tanpa Keterangan',
         ];
-    });
-
-    $santriIds = $rekap->keys();
-    $santris = Santri::whereIn('id', $santriIds)->with('user')->get()->keyBy('id');
-
-    $kelasOptions = Kelas::pluck('nama', 'id');
-    $kamarOptions = Kamar::pluck('nama', 'id');
-
-    return view('absensi.rekap_bulanan', compact(
-        'rekap', 'santris', 'kelasOptions', 'kamarOptions', 'bulan', 'tahun'
-    ));
+        
+        $sheet->setCellValue('H' . $row, $statusMap[$data->status] ?? 'Tidak Diketahui');
+        $row++;
     }
+
+    // Output to browser
+    $writer = new Xlsx($spreadsheet);
+    $filename = 'Data_Absensi.xlsx';
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header("Content-Disposition: attachment; filename=\"$filename\"");
+    $writer->save('php://output');
+    exit;
+}
+
 }

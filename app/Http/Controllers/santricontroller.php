@@ -10,13 +10,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 
 class santricontroller extends Controller
 {
     public function index()
     {
-        $santris = Santri::with(['user', 'santriDetail', 'kamar' , 'kamar'])->get();
-        return view('santri.index', compact('santris'));
+        $santris = Santri::with(['user', 'santriDetail', 'kelas', 'kamar'])
+    ->whereHas('user', function ($query) {
+        $query->where('role', 'santri'); // ganti sesuai kolom role di tabel users
+    })
+    ->get();
+    return view('santri.index', compact('santris'));
+        
     }
     
     
@@ -160,4 +168,71 @@ class santricontroller extends Controller
         });
         return redirect()->route('santri.index')->with('success', 'Data santri berhasil dihapus!');
 }
+
+
+
+
+public function export()
+{
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+    // Set Header Kolom
+    $sheet->setCellValue('A1', 'No');
+    $sheet->setCellValue('B1', 'Nis');
+    $sheet->setCellValue('C1', 'Nama');
+    $sheet->setCellValue('D1', 'Kelas');
+    $sheet->setCellValue('E1', 'Tingkat');
+    $sheet->setCellValue('F1', 'Kamar');
+    $sheet->setCellValue('G1', 'Tanggal Lahir');
+    $sheet->setCellValue('H1', 'No Hp');
+    $sheet->setCellValue('I1', 'Nama Ayah');
+    $sheet->setCellValue('J1', 'Nama Ibu');
+    $sheet->setCellValue('K1', 'Nama Wali');
+    $sheet->setCellValue('L1', 'Status');
+    $sheet->setCellValue('M1', 'Waktu Masuk');
+    $sheet->setCellValue('N1', 'Waktu Keluar');
+    $sheet->setCellValue('O1', 'Email');
+ 
+
+    // Ambil data santri
+    $santris = Santri::with(['user', 'santriDetail', 'kelas', 'kamar'])
+    ->whereHas('user', function ($query) {
+        $query->where('role', 'santri'); // ganti sesuai kolom role di tabel users
+    })
+    ->get();
+
+    // Data
+    $row = 2;
+    $no = 1;
+    foreach ($santris as $santri) {
+        $sheet->setCellValue('A' . $row, $no++);
+        $sheet->setCellValue('B' . $row, $santri->nis);
+        $sheet->setCellValue('C' . $row, $santri->user->name);
+        $sheet->setCellValue('D' . $row, $santri->kelas->nama ?? 'kosong');
+        $sheet->setCellValue('E' . $row, $santri->kelas->tingkat ?? 'kosong');
+        $sheet->setCellValue('F' . $row, $santri->kamar->nama ?? 'kosong');
+        $sheet->setCellValue('G' . $row, $santri->tanggal_lahir ?? 'kosong');
+        $sheet->setCellValue('H'. $row, $santri->no_hp ?? 'kosong');
+        $sheet->setCellValue('I'. $row, $santri->nama_ayah ?? 'kosong');
+        $sheet->setCellValue('J' .$row, $santri->nama_ibu ?? 'kosong');
+        $sheet->setCellValue('K'. $row, $santri->nama_wali ?? 'kosong');
+        $sheet->setCellValue('L'.$row, $santri->status ?? 'kosong');
+        $sheet->setCellValue('M'. $row, $santri->waktu_masuk ?? 'kosong');
+        $sheet->setCellValue('N'. $row, $santri->waktu_keluar ?? 'kosong');
+        $sheet->setCellValue('O'.$row, $santri->user->email ?? 'kosong');
+        $row++;
+    }
+
+    // Buat nama file
+    $fileName = 'data_santri.xlsx';
+
+    // Output ke browser
+    $writer = new Xlsx($spreadsheet);
+    $temp_file = tempnam(sys_get_temp_dir(), $fileName);
+    $writer->save($temp_file);
+
+    return response()->download($temp_file, $fileName)->deleteFileAfterSend(true);
+    }
+
 }

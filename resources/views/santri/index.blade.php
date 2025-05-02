@@ -1,4 +1,6 @@
 <a href="{{ route('santri.create') }}">Tambah santri</a>
+<a href="{{ route('export') }}" class="btn btn-success">Export Excel</a>
+
 <table class="table">
     <thead>
         <tr>

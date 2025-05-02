@@ -1,6 +1,12 @@
 
 <div class="container">
-    <h2>Rekap Absensi Bulan {{ DateTime::createFromFormat('!m', $bulan)->format('F') }} {{ $tahun }}</h2>
+    @if($bulan)
+    <h2>Rekap Bulan {{ DateTime::createFromFormat('!m', $bulan)->format('F') }} {{ $tahun }}</h2>
+@elseif($semester)
+    <h2>Rekap Semester {{ $semester }} - Tahun {{ $tahun }}</h2>
+@else
+    <h2>Rekap Absensi</h2>
+@endif
 
     <!-- Filter -->
     <form method="GET" action="{{ route('absensi.rekap') }}" class="form-inline mb-4">

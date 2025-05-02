@@ -118,7 +118,7 @@ Route::get('/email/verify', function () {
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();
     return redirect('/dashboard');
-})->middleware(['auth', 'signed'])->name('verification.verify');
+})->middleware(['auth', 'signed'])->name('verification.verify'); 
 
 // Route untuk mengirim ulang email verifikasi
 Route::post('/email/verification-notification', function (Request $request) {
@@ -151,3 +151,14 @@ Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('
 
 
 Route::get('/rekap_bulanan', [absensicontroller::class, 'rekap'])->name('absensi.rekap');
+
+
+
+Route::get('/export-santri', [SantriController::class, 'export'])->name('export');
+
+
+Route::get('/export-petugas', [PetgsPembayaranControler::class, 'exportPetugasExcel'])->name('petugas.export');
+
+
+Route::get('/absensi/export', [AbsensiController::class, 'export'])->name('absensi.export');
+

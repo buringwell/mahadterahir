@@ -42,7 +42,7 @@ class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Verifikasi Email Anda')
+            ->subject('Verifikasi asu Anda')
             ->line('Silakan klik tombol di bawah untuk memverifikasi alamat email Anda.')
             ->action('Verifikasi Email', $this->verificationUrl($notifiable))
             ->line('Jika Anda tidak membuat akun, abaikan email ini.');

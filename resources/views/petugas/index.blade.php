@@ -9,6 +9,7 @@
     @endif
 
     <a href="{{ route('petugas.create') }}" class="btn btn-primary mb-3">Tambah Petugas</a>
+    <a href="{{ route('petugas.export') }}" class="btn btn-success mb-3">Export Excel Petugas</a>
 
     <table class="table table-bordered">
         <thead>
