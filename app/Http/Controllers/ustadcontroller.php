@@ -6,6 +6,9 @@ use App\Models\Ustad;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Illuminate\Support\Facades\Response;
 
 class UstadController extends Controller
 {
@@ -95,5 +98,44 @@ class UstadController extends Controller
     
         return redirect()->route('ustadz.index')->with('success', 'Data ustadz berhasil dihapus!');
     }
+
+
+
+public function exportExcel()
+{
+    $ustads = Ustad::with('user')->get();
+
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+    // Header
+    $sheet->setCellValue('A1', 'No');
+    $sheet->setCellValue('B1', 'Nama');
+    $sheet->setCellValue('C1', 'Email');
+    $sheet->setCellValue('D1', 'Alamat');
+    $sheet->setCellValue('E1', 'No HP');
+
+    // Data
+    $row = 2;
+    $no = 1;
+    foreach ($ustads as $ustad) {
+        $sheet->setCellValue('A' . $row, $no++);
+        $sheet->setCellValue('B' . $row, $ustad->user->name ?? '-');
+        $sheet->setCellValue('C' . $row, $ustad->user->email ?? '-');
+        $sheet->setCellValue('D' . $row, $ustad->alamat ?? '-');
+        $sheet->setCellValue('E' . $row, $ustad->no_hp ?? '-');
+        $row++;
+    }
+
+    // Output
+    $writer = new Xlsx($spreadsheet);
+    $filename = 'data_ustad.xlsx';
+
+    // Download response
+    return response()->streamDownload(function () use ($writer) {
+        $writer->save('php://output');
+    }, $filename);
+    }
+
     
 }

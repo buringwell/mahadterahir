@@ -156,9 +156,10 @@ Route::get('/rekap_bulanan', [absensicontroller::class, 'rekap'])->name('absensi
 
 Route::get('/export-santri', [SantriController::class, 'export'])->name('export');
 
-
 Route::get('/export-petugas', [PetgsPembayaranControler::class, 'exportPetugasExcel'])->name('petugas.export');
 
-
 Route::get('/absensi/export', [AbsensiController::class, 'export'])->name('absensi.export');
+
+Route::get('/ustad/export', [UstadController::class, 'exportExcel'])->name('ustad.export');
+
 

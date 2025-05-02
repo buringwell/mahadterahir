@@ -1,6 +1,7 @@
 
    <h2>Daftar Ustad</h2>
     <a href="{{ route('ustadz.create') }}">Tambah Ustad</a>
+    <a href="{{ route('ustad.export') }}" class="btn btn-success mb-3">Export Excel</a>
     <table>
         <tr>
             <th>Nama</th>
@@ -20,7 +21,6 @@
                 <td>{{ $ustad->alamat }}</td>
                 <td>{{ $ustad->mata_pelajaran }}</td>
                 <td>
-                    <a href="{{ route('ustads.show', $ustad->id) }}">Lihat</a>
                     <a href="{{ route('ustadz.edit', $ustad->id) }}">Edit</a>
                     <form action="{{ route('ustadz.destroy', $ustad->id) }}" method="POST" style="display:inline;">
                         @csrf
