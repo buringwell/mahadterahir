@@ -114,6 +114,7 @@ public function exportExcel()
     $sheet->setCellValue('C1', 'Email');
     $sheet->setCellValue('D1', 'Alamat');
     $sheet->setCellValue('E1', 'No HP');
+    $sheet->setCellValue('F1', 'Mata Pelajaran');
 
     // Data
     $row = 2;
@@ -123,7 +124,8 @@ public function exportExcel()
         $sheet->setCellValue('B' . $row, $ustad->user->name ?? '-');
         $sheet->setCellValue('C' . $row, $ustad->user->email ?? '-');
         $sheet->setCellValue('D' . $row, $ustad->alamat ?? '-');
-        $sheet->setCellValue('E' . $row, $ustad->no_hp ?? '-');
+        $sheet->setCellValue('E' . $row, $ustad->No_HP ?? '-');
+        $sheet->setCellValue('F' . $row, $ustad->mata_pelajaran ?? '-');
         $row++;
     }
 
