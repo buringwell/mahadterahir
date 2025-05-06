@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class UstadController extends Controller
 {
@@ -112,9 +114,10 @@ public function exportExcel()
     $sheet->setCellValue('A1', 'No');
     $sheet->setCellValue('B1', 'Nama');
     $sheet->setCellValue('C1', 'Email');
-    $sheet->setCellValue('D1', 'Alamat');
-    $sheet->setCellValue('E1', 'No HP');
-    $sheet->setCellValue('F1', 'Mata Pelajaran');
+    $sheet->setCellValue('D1', 'Jenis Kelamin');
+    $sheet->setCellValue('E1', 'Alamat');
+    $sheet->setCellValue('F1', 'No HP');
+    $sheet->setCellValue('G1', 'Mata Pelajaran');
 
     // Data
     $row = 2;
@@ -123,9 +126,10 @@ public function exportExcel()
         $sheet->setCellValue('A' . $row, $no++);
         $sheet->setCellValue('B' . $row, $ustad->user->name ?? '-');
         $sheet->setCellValue('C' . $row, $ustad->user->email ?? '-');
-        $sheet->setCellValue('D' . $row, $ustad->alamat ?? '-');
-        $sheet->setCellValue('E' . $row, $ustad->No_HP ?? '-');
-        $sheet->setCellValue('F' . $row, $ustad->mata_pelajaran ?? '-');
+        $sheet->setCellValue('D' . $row, $ustad->JK ?? '-');
+        $sheet->setCellValue('E' . $row, $ustad->alamat ?? '-');
+        $sheet->setCellValue('F' . $row, $ustad->No_HP ?? '-');
+        $sheet->setCellValue('G' . $row, $ustad->mata_pelajaran ?? '-');
         $row++;
     }
 
@@ -138,6 +142,56 @@ public function exportExcel()
         $writer->save('php://output');
     }, $filename);
     }
+
+    public function importExcel(Request $request)
+    {
+        if (!$request->hasFile('file')) {
+            return back()->with('error', 'File tidak dikirim.');
+        }
+    
+        try {
+            $file = $request->file('file');
+            $spreadsheet = IOFactory::load($file);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+         
+    
+            if (count($rows) <= 1) {
+                return back()->with('error', 'File kosong atau tidak ada data.');
+            }
+    
+            DB::beginTransaction();
+            foreach ($rows as $index => $row) {
+                if ($index == 0) continue;
+    
+                $name   = $row[1] ?? null;
+                $email  = $row[2] ?? null;
+                $KL  = $row[3] ?? null;
+                $alamat = $row[4] ?? null;
+                $no_hp  = $row[5] ?? null;
+                $mapel  = $row[6] ?? null;
+    
+                if (!$email || !$name) continue;
+    
+                $user = User::updateOrCreate(
+                    ['email' => $email],
+                    ['name' => $name, 'password' => bcrypt('passworddefault'), 'role' => 'ustadz']
+                );
+                
+                Ustad::updateOrCreate(
+                    ['user_id' => $user->id],
+                    ['alamat' => $alamat, 'No_HP' => $no_hp, 'mata_pelajaran' => $mapel, 'JK'=>$KL]
+                );
+            }
+            DB::commit();
+            return back()->with('success', 'Import berhasil!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+    }
+    
 
     
 }

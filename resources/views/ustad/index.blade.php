@@ -2,6 +2,12 @@
    <h2>Daftar Ustad</h2>
     <a href="{{ route('ustadz.create') }}">Tambah Ustad</a>
     <a href="{{ route('ustad.export') }}" class="btn btn-success mb-3">Export Excel</a>
+    <form action="{{ route('ustad.import') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <input type="file" name="file" required>
+        <button type="submit">Import</button>
+    </form>
+    
     <table>
         <tr>
             <th>Nama</th>

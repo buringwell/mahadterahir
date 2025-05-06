@@ -162,4 +162,5 @@ Route::get('/absensi/export', [AbsensiController::class, 'export'])->name('absen
 
 Route::get('/ustad/export', [UstadController::class, 'exportExcel'])->name('ustad.export');
 
+Route::post('/ustad/import', [UstadController::class, 'importExcel'])->name('ustad.import');
 
