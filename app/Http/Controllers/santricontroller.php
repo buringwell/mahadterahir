@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use App\Models\Kelas;
+use App\Models\Kamar;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Carbon\Carbon;
+
+
 
 
 class santricontroller extends Controller
@@ -178,21 +185,14 @@ public function export()
     $sheet = $spreadsheet->getActiveSheet();
 
     // Set Header Kolom
-    $sheet->setCellValue('A1', 'No');
-    $sheet->setCellValue('B1', 'Nis');
-    $sheet->setCellValue('C1', 'Nama');
-    $sheet->setCellValue('D1', 'Kelas');
-    $sheet->setCellValue('E1', 'Tingkat');
-    $sheet->setCellValue('F1', 'Kamar');
-    $sheet->setCellValue('G1', 'Tanggal Lahir');
-    $sheet->setCellValue('H1', 'No Hp');
-    $sheet->setCellValue('I1', 'Nama Ayah');
-    $sheet->setCellValue('J1', 'Nama Ibu');
-    $sheet->setCellValue('K1', 'Nama Wali');
-    $sheet->setCellValue('L1', 'Status');
-    $sheet->setCellValue('M1', 'Waktu Masuk');
-    $sheet->setCellValue('N1', 'Waktu Keluar');
-    $sheet->setCellValue('O1', 'Email');
+    // Header
+    $headers = [
+        'No', 'no_induk_santri', 'nis', 'nama', 'email', 'kelas', 'kamar',
+        'alamat', 'tanggal_lahir', 'no_hp', 'nama_ayah', 'nama_ibu', 'nama_wali',
+        'status', 'waktu_masuk', 'waktu_keluar'
+    ];
+    $sheet->fromArray($headers, null, 'A1');
+
  
 
     // Ambil data santri
@@ -203,24 +203,28 @@ public function export()
     ->get();
 
     // Data
+   
+    // Data
     $row = 2;
     $no = 1;
     foreach ($santris as $santri) {
+        $detail = $santri->santriDetail;
         $sheet->setCellValue('A' . $row, $no++);
-        $sheet->setCellValue('B' . $row, $santri->nis);
-        $sheet->setCellValue('C' . $row, $santri->user->name);
-        $sheet->setCellValue('D' . $row, $santri->kelas->nama ?? 'kosong');
-        $sheet->setCellValue('E' . $row, $santri->kelas->tingkat ?? 'kosong');
-        $sheet->setCellValue('F' . $row, $santri->kamar->nama ?? 'kosong');
-        $sheet->setCellValue('G' . $row, $santri->tanggal_lahir ?? 'kosong');
-        $sheet->setCellValue('H'. $row, $santri->no_hp ?? 'kosong');
-        $sheet->setCellValue('I'. $row, $santri->nama_ayah ?? 'kosong');
-        $sheet->setCellValue('J' .$row, $santri->nama_ibu ?? 'kosong');
-        $sheet->setCellValue('K'. $row, $santri->nama_wali ?? 'kosong');
-        $sheet->setCellValue('L'.$row, $santri->status ?? 'kosong');
-        $sheet->setCellValue('M'. $row, $santri->waktu_masuk ?? 'kosong');
-        $sheet->setCellValue('N'. $row, $santri->waktu_keluar ?? 'kosong');
-        $sheet->setCellValue('O'.$row, $santri->user->email ?? 'kosong');
+        $sheet->setCellValue('B' . $row, $santri->no_induk_santri);
+        $sheet->setCellValue('C' . $row, $santri->nis);
+        $sheet->setCellValue('D' . $row, $santri->user->name ?? '');
+        $sheet->setCellValue('E' . $row, $santri->user->email ?? '');
+        $sheet->setCellValue('F' . $row, $santri->kelas_id);
+        $sheet->setCellValue('G' . $row, $santri->kamar_id);
+        $sheet->setCellValue('H' . $row, $santri->alamat ?? '');
+        $sheet->setCellValue('I' . $row, $santri->tanggal_lahir ?? '');
+        $sheet->setCellValue('J' . $row, $santri->no_hp ?? '');
+        $sheet->setCellValue('K' . $row, $santri->nama_ayah ?? '');
+        $sheet->setCellValue('L' . $row, $santri->nama_ibu ?? '');
+        $sheet->setCellValue('M' . $row, $santri->nama_wali ?? '');
+        $sheet->setCellValue('N' . $row, $detail->status ?? '');
+        $sheet->setCellValue('O' . $row, $santri->waktu_masuk ?? '');
+        $sheet->setCellValue('P' . $row, $santri->waktu_keluar ?? '');
         $row++;
     }
 
@@ -234,5 +238,111 @@ public function export()
 
     return response()->download($temp_file, $fileName)->deleteFileAfterSend(true);
     }
+
+
+
+
+    public function import(Request $request)
+    {
+        $file = $request->file('file');
+        $spreadsheet = IOFactory::load($file);
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray();
+    
+        DB::beginTransaction();
+        try {
+            foreach ($rows as $index => $row) {
+                if ($index === 0) continue; // Skip header
+    
+                $no_induk_santri = $row[1] ?? null;
+                $nis             = $row[2] ?? null;
+                $nama            = $row[3] ?? null;
+                $email           = $row[4] ?? null;
+                $kelas_id = (int) ($row[5] ?? 0);
+                $kamar_id = (int) ($row[6] ?? 0);
+                $alamat          = $row[7] ?? null;
+
+                // Misal $row[8] adalah kolom tanggal lahir
+                
+                $tanggalExcel = $row[8] ?? null;
+
+                if (is_numeric($tanggalExcel)) {
+                    // Format Excel (numeric), ubah jadi Carbon
+                    $tanggal_lahir = Date::excelToDateTimeObject($tanggalExcel)->format('Y-m-d');
+                } else {
+                    // Format string, langsung coba parse
+                    $tanggal_lahir = Carbon::parse($tanggalExcel)->format('Y-m-d');
+                }
+                
+                $no_hp           = $row[9] ?? null; 
+                $nama_ayah       = $row[10] ?? null;
+                $nama_ibu        = $row[11] ?? null;
+                $nama_wali       = $row[12] ?? null;
+                $status          = $row[13] ?? null;
+                $tanggal_daftar  = $row[14] ?? null;
+                if (is_numeric($tanggal_daftar)) {
+                    $tanggal_daftar = Date::excelToDateTimeObject($tanggal_daftar)->format('Y-m-d');
+                } else {
+                    $tanggal_daftar = Carbon::parse($tanggal_daftar)->format('Y-m-d');
+                }
+
+                $waktu_masuk     = $row[15] ?? null;
+                $waktu_keluar    = $row[16] ?? null;
+
+    
+ 
+                // Buat atau ambil user
+                $user = User::firstOrCreate(
+                    ['email' => $email],
+                    ['name' => $nama, 'password' => bcrypt('santri123'), 'role' => 'santri']
+                );
+
+                // Cek / buat kelas
+            $kelas = Kelas::firstOrCreate([
+                'id' => $kelas_id
+            ]);
+
+            // Cek / buat kamar
+            $kamar = Kamar::firstOrCreate(['id' => $kamar_id]);
+    
+                // Buat data santri
+                $santri = Santri::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'no_induk_santri' => $no_induk_santri,
+                        'nis'=> $nis,
+                        'kelas_id'        => $kelas->id,
+                        'kamar_id'        => $kamar->id,
+                        'alamat'          => $alamat,
+                        'tanggal_lahir'   => $tanggal_lahir,
+                        'no_hp'           => $no_hp,
+                        'nama_ayah'       => $nama_ayah,
+                        'nama_ibu'        => $nama_ibu,
+                        'nama_wali'       => $nama_wali,
+                        'status'          => $status,
+                        'waktu_masuk'     => $waktu_masuk,
+                        'waktu_keluar'    => $waktu_keluar,
+                    ]
+                );
+    
+                // Detail santri
+                SantriDetail::updateOrCreate(
+                    ['santri_id' => $santri->id],
+                    [
+                        'staus' => $status,
+                        'tanggal_daftar' => $tanggal_daftar
+                    ]
+                );
+            }
+    
+            DB::commit();
+            return back()->with('success', 'Import santri berhasil!');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e; // sementara, agar muncul error jelas
+        
+        }
+    }
+    
 
 }

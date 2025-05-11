@@ -164,3 +164,4 @@ Route::get('/ustad/export', [UstadController::class, 'exportExcel'])->name('usta
 
 Route::post('/ustad/import', [UstadController::class, 'importExcel'])->name('ustad.import');
 
+Route::post('/santri/import', [santricontroller::class, 'import'])->name('santri.import');

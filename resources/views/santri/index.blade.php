@@ -1,5 +1,10 @@
 <a href="{{ route('santri.create') }}">Tambah santri</a>
 <a href="{{ route('export') }}" class="btn btn-success">Export Excel</a>
+<form action="{{ route('santri.import') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <input type="file" name="file" required>
+    <button type="submit">Import</button>
+</form>
 
 <table class="table">
     <thead>
